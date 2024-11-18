@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <style>
+        /* Optional: Add some styling for the view button */
+        .view-btn {
+            cursor: pointer;
+            background-color: transparent;
+            border: none;
+            color: #007bff;
+            font-size: 14px;
+            position: absolute;
+            right: 10px;  /* Adjusts the position of the button */
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .input-container {
+            position: relative;
+            margin-bottom: 15px; /* Spacing between input fields */
+        }
+    </style>
+</head>
+<body>
+    <nav style="text-align: left; font-size: larger;">
+        <!-- <a href="{{ url_for('home') }}" class="btn btn-primary" style="float:right; margin-top: 10px;">Go to Page</a> -->
+        <strong style="font-size: 25px; margin: 0 10px;">SPARK</strong>
+        <div style="font-size: small; margin: 0 10px;">Parking Made Easier</div>
+    </nav>
+
+    <div class="container">
+        <div id="login-unit" class="login-box">
+            <h1>Login</h1>
+            <form action="/" method="post">
+                <input type="text" id="uid" name="username" class="label-input" placeholder="Enter Reg. No." required />
+                <div class="input-container">
+                    <input type="password" id="pwd" name="password" class="label-input" placeholder="Enter Password" required />
+                    <button type="button" class="view-btn" onclick="togglePassword()">👁️</button>
+                </div>
+                <div>
+                    <img src="{{ url_for('captcha_image') }}" alt="CAPTCHA Image" />
+                </div>
+                <input type="text" id="captcha" name="captcha" class="label-input" placeholder="Enter CAPTCHA" required />
+                <input type="submit" value="Login" />
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword() {
+            const pwdField = document.getElementById('pwd');
+            const pwdFieldType = pwdField.getAttribute('type');
+
+            if (pwdFieldType === 'password') {
+                pwdField.setAttribute('type', 'text');
+            } else {
+                pwdField.setAttribute('type', 'password');
+            }
+        }
+    </script>
+</body>
+</html>

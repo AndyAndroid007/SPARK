@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='parking-style.css') }}" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAODbza3np_rLoeivMQVmqbtYPYixyt8qY"></script>
+    <title>{{ parking_data.name }}</title>
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+            margin: 20px auto;
+        }
+
+        #percentageBarContainer {
+            width: 80%;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        .percentage-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            position: relative;
+        }
+
+        .percentage-bar-fill {
+            height: 100%;
+            position: absolute;
+            background: linear-gradient(to right, #36a2eb, #ff6384);
+        }
+
+        .percentage-text {
+            position: absolute;
+            width: 100%;
+            top: 0;
+            left: 0;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+        }
+
+        .chart-container {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .chart {
+            width: 45%;
+        }
+
+        .full-width-chart {
+            width: 70%;
+            margin: auto;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <a href="{{ url_for('login') }}">
+            <img src="{{ url_for('static', filename='Images/profile.png') }}"
+                style="float: right; margin-right: 10px; width: 50px; height: 50px;">
+        </a>
+    </div>
+    <div class="parking-title">
+        <h1>{{ parking_data.name }}</h1>
+    </div>
+
+    <div id="map"></div>
+
+    <div id="percentageBarContainer">
+        <h3>Parking Occupancy Percentage</h3>
+        <div class="percentage-bar">
+            <div class="percentage-bar-fill" id="percentageBarFill"></div>
+            <div class="percentage-text" id="percentageText"></div>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <div class="chart">
+            <h2 style="text-align: center;">Clustering of Parking Spots</h2>
+            <canvas id="clusteringPieChart"></canvas>
+        </div>
+
+        <div class="chart">
+            <h2 style="text-align: center;">Daily Analysis of Vehicle Parking</h2>
+            <canvas id="barChart"></canvas>
+        </div>
+    </div>
+
+    <div class="full-width-chart">
+        <h2 style="text-align: center;">Hourly Analysis of Vehicle Counts</h2>
+        <canvas id="hourlyChart"></canvas>
+    </div>
+
+    <script>
+        function initMap() {
+            const defaultCenter = { lat: {{ parking_data.lat }}, lng: {{ parking_data.lng }} };
+
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 18,
+                center: defaultCenter
+            });
+
+            const marker = new google.maps.Marker({
+                position: defaultCenter,
+                map: map,
+                title: '{{ parking_data.name }}'
+            });
+
+            marker.addListener('click', () => {
+                window.location.href = '/parking/{{ parking_data.id }}';
+            });
+        }
+
+        window.onload = initMap;
+
+        const clusteringData = {
+            labels: [
+                'Empty/Near Empty (6-7 AM, 7-9 PM)',
+                'Almost Full/Full (7:30 AM-12:30 PM, 2-5 PM)',
+                'Partially Full (12:30-2 PM, 5-6 PM)'
+            ],
+            datasets: [{
+                data: [18, 45, 37],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(255, 206, 86, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(255, 206, 86, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        const clusteringConfig = {
+            type: 'pie',
+            data: clusteringData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        };
+
+        new Chart(document.getElementById('clusteringPieChart'), clusteringConfig);
+
+        const barData = {
+            labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            datasets: [
+                {
+                    label: 'Cars',
+                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    data: [200, 170, 180, 140, 80, 40, 20]
+                },
+                // {
+                //     label: 'Bikes',
+                //     backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                //     borderColor: 'rgb(54, 162, 235)',
+                //     data: [20, 30, 25, 35, 40, 20, 50]
+                // }
+            ]
+        };
+
+        const barConfig = {
+            type: 'bar',
+            data: barData,
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Vehicles'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            }
+        };
+
+        new Chart(document.getElementById('barChart'), barConfig);
+
+        const hourlyData = {
+            labels: ['12 AM', '2 AM', '4 AM', '6 AM', '8 AM', '10 AM', '12 PM', '2 PM', '4 PM', '6 PM', '8 PM', '10 PM'],
+            datasets: [
+                {
+                    label: 'Cars',
+                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    data: [0, 0, 0, 5, 30, 50, 70, 60, 45, 35, 20, 0],
+                    fill: false
+                },
+                // {
+                //     label: 'Bikes',
+                //     backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                //     borderColor: 'rgba(54, 162, 235, 1)',
+                //     data: [3, 2, 5, 10, 20, 30, 40, 45, 35, 25, 15, 5],
+                //     fill: false
+                // }
+            ]
+        };
+
+        const hourlyConfig = {
+            type: 'line',
+            data: hourlyData,
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Vehicle Counts'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            }
+        };
+
+        new Chart(document.getElementById('hourlyChart'), hourlyConfig);
+
+        const occupancyPercentage = 60;
+        document.getElementById('percentageBarFill').style.width = `${occupancyPercentage}%`;
+        document.getElementById('percentageText').innerText = `${occupancyPercentage}% Occupied`;
+    </script>
+</body>
+
+</html>
